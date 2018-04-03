@@ -68,7 +68,7 @@ namespace PlanetaryProcessor
             // Build both bitsizes
             foreach (String bitSize in new[] {"x86", "x64"})
             {
-                String bitPath = Utility.Combine(path, bitSize);
+                String bitPath = Path.Combine(path, bitSize);
 
                 // Extract all custom files
                 foreach (String file in _files)
@@ -78,7 +78,7 @@ namespace PlanetaryProcessor
                                       bitSize + file.Replace("/", ".");
 
                     // Build the file path
-                    String filePath = Utility.Combine(bitPath, "PlanetaryProcessor.App_Data", file) ?? "";
+                    String filePath = Path.Combine(bitPath, "PlanetaryProcessor.App_Data", file) ?? "";
                     String directoryPath = Path.GetDirectoryName(filePath);
                     if (String.IsNullOrEmpty(directoryPath))
                     {
@@ -108,33 +108,17 @@ namespace PlanetaryProcessor
 
                 // Unity Player
                 String programName = bitSize == "x86" ? "KSP" : "KSP_x64";
-                File.Copy(Utility.Combine(kspPath, programName + ".exe"),
-                    Utility.Combine(bitPath, "PlanetaryProcessor.App.exe"));
+                File.Copy(Path.Combine(kspPath, programName + ".exe"), Path.Combine(bitPath, "PlanetaryProcessor.App.exe"));
 
                 // Mono Runtime
-                foreach (String f in Directory.GetFiles(Utility.Combine(kspPath, programName + "_Data", "Mono"),
-                    "*", SearchOption.AllDirectories))
-                {
-                    String destination = f.Replace(Utility.Combine(kspPath, programName + "_Data"),
-                        Utility.Combine(bitPath, "PlanetaryProcessor.App_Data"));
-                    Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                    File.Copy(f, destination);
-                }
+                CopyDir(Path.Combine(kspPath, programName + "_Data"), Path.Combine(bitPath, "PlanetaryProcessor.App_Data"), "Mono");
 
                 // Weird default files
-                foreach (String f in Directory.GetFiles(
-                    Utility.Combine(kspPath, programName + "_Data", "Resources"),
-                    "*", SearchOption.AllDirectories))
-                {
-                    String destination = f.Replace(Utility.Combine(kspPath, programName + "_Data"),
-                        Utility.Combine(bitPath, "PlanetaryProcessor.App_Data"));
-                    Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                    File.Copy(f, destination);
-                }
+                CopyDir(Path.Combine(kspPath, programName + "_Data"), Path.Combine(bitPath, "PlanetaryProcessor.App_Data"), "Resources");
 
                 // Copy dlls
-                String managedKSP = Utility.Combine(kspPath, programName + "_Data", "Managed");
-                String managedPP = Utility.Combine(bitPath, "PlanetaryProcessor.App_Data", "Managed");
+                String managedKSP = Path.Combine(kspPath, programName + "_Data", "Managed");
+                String managedPP = Path.Combine(bitPath, "PlanetaryProcessor.App_Data", "Managed");
 
                 CopyDll(managedKSP, managedPP, "Assembly-CSharp.dll");
                 CopyDll(managedKSP, managedPP, "Assembly-CSharp-firstpass.dll");
@@ -164,7 +148,7 @@ namespace PlanetaryProcessor
                                   file.Replace("/", ".");
 
                 // Build the file path
-                String filePath = Utility.Combine(path, "PlanetaryProcessor.App_Data", file) ?? "";
+                String filePath = Path.Combine(path, "PlanetaryProcessor.App_Data", file) ?? "";
                 String directoryPath = Path.GetDirectoryName(filePath);
                 if (String.IsNullOrEmpty(directoryPath))
                 {
@@ -193,36 +177,18 @@ namespace PlanetaryProcessor
             // Copy neccessary files from KSP
 
             // Unity Player
-            File.Copy(Utility.Combine(kspPath, "KSP.x86"),
-                Utility.Combine(path, "PlanetaryProcessor.App.x86"));
-            File.Copy(Utility.Combine(kspPath, "KSP.x86_64"),
-                Utility.Combine(path, "PlanetaryProcessor.App.x86_64"));
+            File.Copy(Path.Combine(kspPath, "KSP.x86"), Path.Combine(path, "PlanetaryProcessor.App.x86"));
+            File.Copy(Path.Combine(kspPath, "KSP.x86_64"), Path.Combine(path, "PlanetaryProcessor.App.x86_64"));
 
             // Mono Runtime
-            foreach (String f in Directory.GetFiles(
-                Utility.Combine(kspPath, "KSP_Data", "Mono"),
-                "*", SearchOption.AllDirectories))
-            {
-                String destination = f.Replace(Utility.Combine(kspPath, "KSP_Data"),
-                    Utility.Combine(path, "PlanetaryProcessor.App_Data"));
-                Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                File.Copy(f, destination);
-            }
+            CopyDir(Path.Combine(kspPath, "KSP_Data"), Path.Combine(path, "PlanetaryProcessor.App_Data"), "Mono");
 
             // Weird default files
-            foreach (String f in Directory.GetFiles(
-                Utility.Combine(kspPath, "KSP_Data", "Resources"),
-                "*", SearchOption.AllDirectories))
-            {
-                String destination = f.Replace(Utility.Combine(kspPath, "KSP_Data"),
-                    Utility.Combine(path, "PlanetaryProcessor.App_Data"));
-                Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                File.Copy(f, destination);
-            }
+            CopyDir(Path.Combine(kspPath, "KSP_Data"), Path.Combine(path, "PlanetaryProcessor.App_Data"), "Resources");
 
             // Copy dlls
-            String managedKSP = Utility.Combine(kspPath, "KSP_Data", "Managed");
-            String managedPP = Utility.Combine(path, "PlanetaryProcessor.App_Data", "Managed");
+            String managedKSP = Path.Combine(kspPath, "KSP_Data", "Managed");
+            String managedPP = Path.Combine(path, "PlanetaryProcessor.App_Data", "Managed");
 
             CopyDll(managedKSP, managedPP, "Assembly-CSharp.dll");
             CopyDll(managedKSP, managedPP, "Assembly-CSharp-firstpass.dll");
@@ -238,7 +204,20 @@ namespace PlanetaryProcessor
         /// </summary>
         private static void CopyDll(String kspManaged, String ppManaged, String dll)
         {
-            File.Copy(Utility.Combine(kspManaged, dll), Utility.Combine(ppManaged, dll));
+            File.Copy(Path.Combine(kspManaged, dll), Path.Combine(ppManaged, dll));
+        }
+
+        /// <summary>
+        /// Copys all files in a directory
+        /// </summary>
+        private static void CopyDir(String kspData, String ppData, String folder)
+        {
+            foreach (String f in Directory.GetFiles(Path.Combine(kspData, folder), "*", SearchOption.AllDirectories))
+            {
+                String destination = f.Replace(kspData, ppData);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination));
+                File.Copy(f, destination);
+            }
         }
     }
 }

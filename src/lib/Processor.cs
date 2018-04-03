@@ -64,7 +64,7 @@ namespace PlanetaryProcessor
                 }
 
                 // Assemble the Unity Application from the KSP installation
-                String path = Utility.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
                     ".planetaryprocessor", Version);
                 if (!Directory.Exists(path))
                 {
@@ -86,11 +86,11 @@ namespace PlanetaryProcessor
                     programName = "PlanetaryProcessor.App.exe";
                     if (IntPtr.Size == 8)
                     {
-                        programDirectory = Utility.Combine(path, "x64");
+                        programDirectory = Path.Combine(path, "x64");
                     }
                     else
                     {
-                        programDirectory = Utility.Combine(path, "x86");
+                        programDirectory = Path.Combine(path, "x86");
                     }
                 }
                 else
@@ -106,7 +106,7 @@ namespace PlanetaryProcessor
                     }
                 }
 
-                ProcessStartInfo startInfo = new ProcessStartInfo(Utility.Combine(programDirectory, programName),
+                ProcessStartInfo startInfo = new ProcessStartInfo(Path.Combine(programDirectory, programName),
                     "-nographics -batchmode -id:" + id);
                 startInfo.WorkingDirectory = programDirectory;
                 startInfo.EnvironmentVariables.Add("LC_ALL", "C");
@@ -289,7 +289,7 @@ namespace PlanetaryProcessor
         /// </summary>
         public static String TransformPath(String path)
         {
-            String appPath = Utility.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+            String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
                 ".planetaryprocessor", Version, "GameData");
             String[] lStartPathParts = appPath.Trim(Path.DirectorySeparatorChar)
                 .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
