@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanetaryProcessor", "src\lib\PlanetaryProcessor.csproj", "{158FB24F-59B4-438C-BA89-7279CEC87D1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanetaryProcessor.Unity", "src\unity\PlanetaryProcessor.Unity.csproj", "{9E42FEF0-CCBB-4DDC-827B-18845435832C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanetaryProcessor.Tester", "src\tester\PlanetaryProcessor.Tester.csproj", "{6D051B1D-567B-480C-B98A-4D6F7CBBEDE4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{158FB24F-59B4-438C-BA89-7279CEC87D1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{158FB24F-59B4-438C-BA89-7279CEC87D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{158FB24F-59B4-438C-BA89-7279CEC87D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{158FB24F-59B4-438C-BA89-7279CEC87D1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E42FEF0-CCBB-4DDC-827B-18845435832C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E42FEF0-CCBB-4DDC-827B-18845435832C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E42FEF0-CCBB-4DDC-827B-18845435832C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E42FEF0-CCBB-4DDC-827B-18845435832C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D051B1D-567B-480C-B98A-4D6F7CBBEDE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D051B1D-567B-480C-B98A-4D6F7CBBEDE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D051B1D-567B-480C-B98A-4D6F7CBBEDE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D051B1D-567B-480C-B98A-4D6F7CBBEDE4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

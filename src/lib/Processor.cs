@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace PlanetaryProcessor
@@ -281,6 +282,47 @@ namespace PlanetaryProcessor
             public Color[,] Color;
             public Color[,] Height;
             public Color[,] Normal;
+        }
+
+        /// <summary>
+        /// Generates a path that is relative to the imaginary GameData directory of the application
+        /// </summary>
+        public static String TransformPath(String path)
+        {
+            String appPath = Utility.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                ".planetaryprocessor", Version, "GameData");
+            String[] lStartPathParts = appPath.Trim(Path.DirectorySeparatorChar)
+                .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+            String[] lDestinationPathParts = Path.GetFullPath(path)
+                .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+
+            Int32 lSameCounter = 0;
+            while (lSameCounter < lStartPathParts.Length && lSameCounter < lDestinationPathParts.Length &&
+                   lStartPathParts[lSameCounter].Equals(lDestinationPathParts[lSameCounter],
+                       Environment.OSVersion.Platform == PlatformID.Win32NT
+                           ? StringComparison.InvariantCultureIgnoreCase
+                           : StringComparison.InvariantCulture))
+            {
+                lSameCounter++;
+            }
+
+            if (lSameCounter == 0)
+            {
+                return null; // There is no relative link.
+            }
+
+            StringBuilder lBuilder = new StringBuilder();
+            for (Int32 i = lSameCounter; i < lStartPathParts.Length; i++)
+            {
+                lBuilder.Append(".." + Path.DirectorySeparatorChar);
+            }
+            for (Int32 i = lSameCounter; i < lDestinationPathParts.Length; i++)
+            {
+                lBuilder.Append(lDestinationPathParts[i] + Path.DirectorySeparatorChar);
+            }
+            lBuilder.Length--;
+
+            return lBuilder.ToString();
         }
     }
 }

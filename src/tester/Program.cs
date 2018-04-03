@@ -51,8 +51,12 @@ namespace PlanetaryProcessor.Tester
             
             using (Processor processor = await Processor.Create("/home/dorian/Dokumente/KSP/1.4.2/Kerbal Space Program/"))
             {
+                Console.WriteLine(Processor.TransformPath("Kopernicus/Cache/test.bin"));
+                
                 Processor.EncodedTextureData data = await processor.GenerateMapsEncoded(config);
 
+                
+                
                 await SaveStream("color.png", data.Color);
                 await SaveStream("height.png", data.Height);
                 await SaveStream("normal.png", data.Normal);

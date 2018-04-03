@@ -28,7 +28,7 @@ namespace PlanetaryProcessor.Unity
         private Boolean _isDisposed;
 
         /// <summary>
-        /// The callbacks that respond to certain messages
+        /// The messages that are read by the callbacks
         /// </summary>
         private Dictionary<String, Queue<String>> _messages;
         

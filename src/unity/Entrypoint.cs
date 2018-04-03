@@ -43,8 +43,6 @@ namespace PlanetaryProcessor.Unity
             String id = args.First(s => s.StartsWith("-id:"));
             id = id.Substring(4);
             _client = new PipeClient(id);
-            
-            Logger.Default.Log("1");
             _client.ReadMessage("GENERATE-MAPS-RAW",
                 channel => _client.ReadMessage(channel, s => GenerateRawPlanetMaps(channel, s)));
             _client.ReadMessage("GENERATE-MAPS-ENCODED",
@@ -63,6 +61,14 @@ namespace PlanetaryProcessor.Unity
             if (localizerInstance != null)
             {
                 localizerInstance.SetValue(null, new Localizer(), null);
+            }
+            
+            // Kickstart GameDatabase
+            FieldInfo gameDatabaseInstance =
+                typeof(GameDatabase).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic);
+            if (gameDatabaseInstance != null)
+            {
+                gameDatabaseInstance.SetValue(null, gameObject.AddComponent<GameDatabase>());
             }
         }
 
@@ -138,8 +144,16 @@ namespace PlanetaryProcessor.Unity
             PQSMod_VoronoiCraters craters = new GameObject("Craters").AddComponent<PQSMod_VoronoiCraters>();
             craters.craterColourRamp = new Gradient();
             craters.craterColourRamp.SetKeys(
-                new[] {new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1)},
+                new[]
+                {
+                    new GradientColorKey(new Color(0.271f, 0.271f, 0.271f, 1.000f), 0.005889982f),
+                    new GradientColorKey(new Color(0.188f, 0.188f, 0.188f, 1.000f), 0.123537f),
+                    new GradientColorKey(new Color(0.329f, 0.329f, 0.329f, 1.000f), 0.5294118f),
+                    new GradientColorKey(new Color(0.584f, 0.584f, 0.584f, 1.000f), 0.6411841f),
+                    new GradientColorKey(new Color(0.400f, 0.400f, 0.400f, 1.000f), 0.7911803f)
+                },
                 new[] {new GradientAlphaKey(1, 0), new GradientAlphaKey(1, 1)});
+            craters.craterColourRamp.mode = GradientMode.Blend;
             craters.transform.parent = mun.pqsVersion.transform;
             root.children.Add(mun);
             
@@ -157,6 +171,9 @@ namespace PlanetaryProcessor.Unity
             // Explanation: The ScaledVersion { } node breaks because we don't have access to the shaders 
             // referenced there. Therefor we can't set this value in the config directly
             Events.OnBodyApply.Add((b, c) => b.scaledVersion.deferMesh = true);
+            
+            // Disable OnDemand loading
+            OnDemandStorage.useOnDemand = false;
         }
 
         /// <summary>
@@ -257,7 +274,6 @@ namespace PlanetaryProcessor.Unity
         /// </summary>
         private void GenerateEncodedPlanetMaps(String channel, String config)
         {
-            Logger.Default.Log("1");
             try
             {
                 // Load the config
@@ -329,9 +345,6 @@ namespace PlanetaryProcessor.Unity
                 
             // Load the body
             Body body = Loader.currentBody = new Body();
-            Logger.Default.Log(body);
-            Logger.Default.Log(bodyNode);
-            Logger.Default.Flush();
             Parser.LoadObjectFromConfigurationNode(body, bodyNode);
                 
             // Remove the celestial body transform
@@ -359,7 +372,6 @@ namespace PlanetaryProcessor.Unity
             for (Int32 i = 0; i < mods.Length; i++)
             {
                 mods[i].OnSetup();
-                Logger.Default.Log(mods[i]);
             }
 
             return body;
