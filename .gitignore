@@ -325,3 +325,5 @@ sysinfo.txt
 
 # Kopernicus 
 kopernicus/*.dll
+!resources/Win32NT/x86
+!resources/Win32NT/x64
