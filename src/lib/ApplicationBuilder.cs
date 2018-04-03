@@ -75,7 +75,7 @@ namespace PlanetaryProcessor
                 {
                     // Build the resource path
                     String resource = "PlanetaryProcessor.Resources." + Environment.OSVersion.Platform + "." +
-                                      bitSize + file.Replace("/", ".");
+                                      bitSize + "." + file.Replace("/", ".");
 
                     // Build the file path
                     String filePath = Path.Combine(bitPath, "PlanetaryProcessor.App_Data", file) ?? "";
