@@ -118,6 +118,7 @@ namespace PlanetaryProcessor
         public async Task WaitForConnection()
         {
             await Task.Run(() => { _server.WaitForConnection(); });
+            await Task.Delay(200);
 
             // Connect to the other direction
             _client = new NamedPipeClientStream(".", _name + "-RE", PipeDirection.InOut);

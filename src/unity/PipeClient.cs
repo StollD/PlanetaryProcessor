@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using PlanetaryProcessor.Unity;
 using UnityEngine;
 using Logger = Kopernicus.Logger;
@@ -35,8 +36,14 @@ namespace PlanetaryProcessor.Unity
         public PipeClient(String name)
         {
             _client = new NamedPipeClientStream(".", name, PipeDirection.InOut);
-            _server = new NamedPipeServerStream(name + "-RE", PipeDirection.InOut);
             _client.Connect();
+
+            while (!_client.IsConnected)
+            {
+                Thread.Sleep(100);
+            }
+            
+            _server = new NamedPipeServerStream(name + "-RE", PipeDirection.InOut);
             _server.WaitForConnection();
             _messages = new Dictionary<String, Queue<String>>();
 
