@@ -107,9 +107,10 @@ namespace PlanetaryProcessor
                 }
 
                 ProcessStartInfo startInfo = new ProcessStartInfo(Path.Combine(programDirectory, programName),
-                    "-nographics -batchmode -id:" + id);
+                    "-nographics -batchmode");
                 startInfo.WorkingDirectory = programDirectory;
                 startInfo.EnvironmentVariables.Add("LC_ALL", "C");
+                startInfo.EnvironmentVariables.Add("PP_ID", id);
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardOutput = true;
                 processor._process = Process.Start(startInfo);

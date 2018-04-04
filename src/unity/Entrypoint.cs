@@ -39,9 +39,7 @@ namespace PlanetaryProcessor.Unity
             InitKopernicus();
             
             // Create the pipe to the controller
-            String[] args = Environment.GetCommandLineArgs();
-            String id = args.First(s => s.StartsWith("-id:"));
-            id = id.Substring(4);
+            String id = Environment.GetEnvironmentVariable("PP_ID");
             _client = new PipeClient(id);
             _client.ReadMessage("GENERATE-MAPS-RAW",
                 channel => _client.ReadMessage(channel, s => GenerateRawPlanetMaps(channel, s)));
