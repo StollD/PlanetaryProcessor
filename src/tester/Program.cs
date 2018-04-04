@@ -16,7 +16,7 @@ namespace PlanetaryProcessor.Tester
         {
             DateTime t = DateTime.Now;
             NodeTree config = new NodeTree();
-            config.SetValue("__resolution", "8192");
+            config.SetValue("__resolution", "2048");
             config.SetValue("__radius", "25000");
             config.SetValue("__hasOcean", "false");
             config.SetValue("__oceanHeight", "0");

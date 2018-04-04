@@ -123,7 +123,7 @@ namespace PlanetaryProcessor
                 {
                     while (!processor._isDisposed)
                     {
-                        //await processor._server.SendMessage("KEEPALIVE", id);
+                        await processor._server.SendMessage("KEEPALIVE", id);
                         await Task.Delay(5000);
                     }
                 });

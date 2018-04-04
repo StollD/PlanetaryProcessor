@@ -90,29 +90,78 @@ namespace PlanetaryProcessor
             String fullMsg = ident + "::" + message;
             await WriteString(fullMsg);
         }
-        
-        private Byte[] _buffer;
 
         private async Task<String> ReadString()
         {
-            _buffer = new Byte[4];
-            await _client.ReadAsync(_buffer, 0, 4);
-            Int32 len = BitConverter.ToInt32(_buffer, 0);
-            _buffer = new Byte[len];
-            await _client.ReadAsync(_buffer, 0, len);
+            Byte[] sizeinfo = new Byte[4];
 
-            return Encoding.Unicode.GetString(_buffer);
+            // Read the size of the message
+            Int32 totalread = 0, currentread = 0;
+
+            currentread = totalread = await _client.ReadAsync(sizeinfo, 0, 4);
+
+            while (totalread < sizeinfo.Length && currentread > 0)
+            {
+                currentread = await _client.ReadAsync(sizeinfo,
+                    totalread, //offset into the buffer
+                    sizeinfo.Length - totalread //max amount to read
+                );
+
+                totalread += currentread;
+            }
+
+            Int32 messagesize = 0;
+
+            //could optionally call BitConverter.ToInt32(sizeinfo, 0);
+            messagesize |= sizeinfo[0];
+            messagesize |= sizeinfo[1] << 8;
+            messagesize |= sizeinfo[2] << 16;
+            messagesize |= sizeinfo[3] << 24;
+
+            //create a byte array of the correct size
+            //note:  there really should be a size restriction on
+            //              messagesize because a user could send
+            //              Int32.MaxValue and cause an OutOfMemoryException
+            //              on the receiving side.  maybe consider using a short instead
+            //              or just limit the size to some reasonable value
+            Byte[] data = new Byte[messagesize];
+
+            //read the first chunk of data
+            totalread = 0;
+            currentread = totalread = await _client.ReadAsync(data,
+                totalread, //offset into the buffer
+                data.Length - totalread //max amount to read
+            );
+
+            //if we didn't get the entire message, read some more until we do
+            while (totalread < messagesize && currentread > 0)
+            {
+                currentread = await _client.ReadAsync(data,
+                    totalread, //offset into the buffer
+                    data.Length - totalread //max amount to read
+                );
+                totalread += currentread;
+            }
+
+            return Encoding.ASCII.GetString(data, 0, totalread);
         }
 
         private async Task<Int32> WriteString(String outString)
         {
-            _buffer = Encoding.Unicode.GetBytes(outString);
-            Int32 len = _buffer.Length;
-            await _server.WriteAsync(BitConverter.GetBytes(len), 0, 4);
-            await _server.WriteAsync(_buffer, 0, len);
+            Byte[] data = Encoding.ASCII.GetBytes(outString);
+            Byte[] sizeinfo = new Byte[4];
+
+            //could optionally call BitConverter.GetBytes(data.length);
+            sizeinfo[0] = (Byte)data.Length;
+            sizeinfo[1] = (Byte)(data.Length >> 8);
+            sizeinfo[2] = (Byte)(data.Length >> 16);
+            sizeinfo[3] = (Byte)(data.Length >> 24);
+
+            await _server.WriteAsync(sizeinfo, 0, 4);
+            await _server.WriteAsync(data, 0, data.Length);
             _server.Flush();
 
-            return _buffer.Length + 4;
+            return data.Length + 4;
         }
 
         public async Task WaitForConnection()
