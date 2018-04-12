@@ -53,6 +53,11 @@ namespace PlanetaryProcessor.Tester
             vertexHeightNoise.SetValue("lacunarity", "2.5");
             vertexHeightNoise.SetValue("order", "19");
             vertexHeightNoise.SetValue("enabled", "True");
+            NodeTree vertexHeightOblate = mods.AddNode("VertexHeightOblate");
+            vertexHeightOblate.SetValue("height", "6000");
+            vertexHeightOblate.SetValue("pow", "1");
+            vertexHeightOblate.SetValue("enabled", "True");
+            vertexHeightOblate.SetValue("order", "1");
             
             using (Processor processor = await Processor.Create("/home/dorian/Dokumente/KSP/1.4.2/Kerbal Space Program/"))
             {

@@ -388,6 +388,7 @@ namespace PlanetaryProcessor.Unity
 
             // Create a VertexBuildData
             PQS.VertexBuildData data = new PQS.VertexBuildData();
+            Vector3 direction;
 
             // Build the textures
             for (Int32 y = 0; y < height; y++)
@@ -399,6 +400,24 @@ namespace PlanetaryProcessor.Unity
                                                QuaternionD.AngleAxis(90d - 180d / height * y, Vector3d.right) *
                                                Vector3d.forward;
                     data.vertHeight = body.pqs.Value.radius;
+                    
+                    // Map coords
+                    data.latitude = Math.Asin(data.directionFromCenter.y);
+                    if (double.IsNaN(data.latitude))
+                    {
+                        data.latitude = 1.5707963267948966;
+                    }
+                    direction = new Vector3d(data.directionFromCenter.x, 0.0, data.directionFromCenter.z).normalized;
+                    if (direction.magnitude > 0.0)
+                    {
+                        data.longitude = direction.z >= 0.0 ? Math.Asin(direction.x) : Math.PI - Math.Asin(direction.x);
+                    }
+                    else
+                    {
+                        data.longitude = 0.0;
+                    }
+                    data.v = data.latitude / 3.1415926535897931 + 0.5;
+                    data.u = data.longitude / 3.1415926535897931 * 0.5;
 
                     // Build the height data
                     for (Int32 i = 0; i < mods.Length; i++)
