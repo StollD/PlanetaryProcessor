@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,12 +34,18 @@ namespace PlanetaryProcessor
         /// The name of the pipe
         /// </summary>
         private String _name;
+
+        /// <summary>
+        /// An object that makes sure certain code isn't executed at the same time
+        /// </summary>
+        private Object _lock;
         
         public PipeServer(String name)
         {
             _name = name;
             _server = new NamedPipeServerStream(name, PipeDirection.InOut);
             _messages = new Dictionary<String, Queue<String>>();
+            _lock = new Object();
         }
 
         private async Task CheckForNewMessages()
@@ -51,11 +58,15 @@ namespace PlanetaryProcessor
                 return;
             }
 
-            if (!_messages.ContainsKey(split[0]))
+            lock (_lock)
             {
-                _messages.Add(split[0], new Queue<String>());
+                if (!_messages.ContainsKey(split[0]))
+                {
+                    _messages.Add(split[0], new Queue<String>());
+                }
+
+                _messages[split[0]].Enqueue(split[1]);
             }
-            _messages[split[0]].Enqueue(split[1]);
         }
 
         /// <summary>
@@ -67,14 +78,17 @@ namespace PlanetaryProcessor
             {
                 while (!_isDisposed)
                 {
-                    if (!_messages.ContainsKey(ident))
+                    lock (_lock)
                     {
-                        continue;
-                    }
+                        if (!_messages.ContainsKey(ident))
+                        {
+                            continue;
+                        }
 
-                    if (_messages[ident].Any())
-                    {
-                        return _messages[ident].Dequeue();
+                        if (_messages[ident].Any())
+                        {
+                            return _messages[ident].Dequeue();
+                        }
                     }
                 }
 
