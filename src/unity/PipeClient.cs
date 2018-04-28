@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using PlanetaryProcessor.Unity;
@@ -14,14 +16,9 @@ namespace PlanetaryProcessor.Unity
     public class PipeClient : IDisposable
     {
         /// <summary>
-        /// The pipe that reads from the controller
-        /// </summary>
-        private NamedPipeClientStream _client;
-
-        /// <summary>
         /// The pipe that writes to the controller
         /// </summary>
-        private NamedPipeServerStream _server;
+        private TcpClient _client;
 
         /// <summary>
         /// Whether the Pipe was disposed
@@ -33,18 +30,16 @@ namespace PlanetaryProcessor.Unity
         /// </summary>
         private Dictionary<String, Queue<String>> _messages;
         
-        public PipeClient(String name)
+        public PipeClient(Int32 port)
         {
-            _client = new NamedPipeClientStream(".", name, PipeDirection.InOut);
-            _client.Connect();
-
-            while (!_client.IsConnected)
+            _client = new TcpClient(new IPEndPoint(IPAddress.Loopback, port).AddressFamily);
+            _client.Connect(IPAddress.Loopback, port);
+            _client.Client.NoDelay = true;
+            _client.Client.DontFragment = true;
+            while (!_client.Connected)
             {
                 Thread.Sleep(100);
             }
-            
-            _server = new NamedPipeServerStream(name + "-RE", PipeDirection.InOut);
-            _server.WaitForConnection();
             _messages = new Dictionary<String, Queue<String>>();
 
             Entrypoint.Instance.StartCoroutine(CheckForNewMessages());
@@ -54,7 +49,7 @@ namespace PlanetaryProcessor.Unity
         {
             while (!_isDisposed)
             {
-                String s = ReadString();
+                String s = ReadMessage(_client.Client);
                 String[] split = s.Split(new[] {"::"}, StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length == 2)
                 {
@@ -99,24 +94,39 @@ namespace PlanetaryProcessor.Unity
         public void SendMessage(String ident, String message)
         {
             String fullMsg = ident + "::" + message;
-            WriteString(fullMsg);
+            SendMessage(_client.Client, fullMsg);
         }
         
-        private String ReadString()
+        private static void SendMessage(Socket socket, String msg)
+        {
+            Byte[] data = Encoding.ASCII.GetBytes(msg);
+            Byte[] sizeinfo = new Byte[4];
+
+            //could optionally call BitConverter.GetBytes(data.length);
+            sizeinfo[0] = (Byte)data.Length;
+            sizeinfo[1] = (Byte)(data.Length >> 8);
+            sizeinfo[2] = (Byte)(data.Length >> 16);
+            sizeinfo[3] = (Byte)(data.Length >> 24);
+
+            socket.Send(sizeinfo);
+            socket.Send(data);
+        }
+        
+        private static String ReadMessage(Socket socket)
         {
             Byte[] sizeinfo = new Byte[4];
 
-            // Read the size of the message
+            //read the size of the message
             Int32 totalread = 0, currentread = 0;
 
-            currentread = totalread = _client.Read(sizeinfo, 0, 4);
+            currentread = totalread = socket.Receive(sizeinfo);
 
             while (totalread < sizeinfo.Length && currentread > 0)
             {
-                currentread = _client.Read(sizeinfo,
-                    totalread, //offset into the buffer
-                    sizeinfo.Length - totalread //max amount to read
-                );
+                currentread = socket.Receive(sizeinfo,
+                          totalread, //offset into the buffer
+                          sizeinfo.Length - totalread, //max amount to read
+                          SocketFlags.None);
 
                 totalread += currentread;
             }
@@ -125,10 +135,10 @@ namespace PlanetaryProcessor.Unity
 
             //could optionally call BitConverter.ToInt32(sizeinfo, 0);
             messagesize |= sizeinfo[0];
-            messagesize |= sizeinfo[1] << 8;
-            messagesize |= sizeinfo[2] << 16;
-            messagesize |= sizeinfo[3] << 24;
-
+            messagesize |= (((Int32)sizeinfo[1]) << 8);
+            messagesize |= (((Int32)sizeinfo[2]) << 16);
+            messagesize |= (((Int32)sizeinfo[3]) << 24);
+           
             //create a byte array of the correct size
             //note:  there really should be a size restriction on
             //              messagesize because a user could send
@@ -139,47 +149,29 @@ namespace PlanetaryProcessor.Unity
 
             //read the first chunk of data
             totalread = 0;
-            currentread = totalread = _client.Read(data,
-                totalread, //offset into the buffer
-                data.Length - totalread //max amount to read
-            );
+            currentread = totalread = socket.Receive(data,
+                         totalread, //offset into the buffer
+                        data.Length - totalread, //max amount to read
+                        SocketFlags.None);
 
             //if we didn't get the entire message, read some more until we do
             while (totalread < messagesize && currentread > 0)
             {
-                currentread = _client.Read(data,
-                    totalread, //offset into the buffer
-                    data.Length - totalread //max amount to read
-                );
+                currentread = socket.Receive(data,
+                         totalread, //offset into the buffer
+                        data.Length - totalread, //max amount to read
+                        SocketFlags.None);
                 totalread += currentread;
             }
 
-            return Encoding.ASCII.GetString(data, 0, totalread);
-        }
-
-        private Int32 WriteString(String outString)
-        {
-            Byte[] data = Encoding.ASCII.GetBytes(outString);
-            Byte[] sizeinfo = new Byte[4];
-
-            //could optionally call BitConverter.GetBytes(data.length);
-            sizeinfo[0] = (Byte)data.Length;
-            sizeinfo[1] = (Byte)(data.Length >> 8);
-            sizeinfo[2] = (Byte)(data.Length >> 16);
-            sizeinfo[3] = (Byte)(data.Length >> 24);
-
-            _server.Write(sizeinfo, 0, 4);
-            _server.Write(data, 0, data.Length);
-            _server.Flush();
-
-            return data.Length + 4;
+            return Encoding.ASCII.GetString(data, 0, totalread);                   
         }
 
         public void Dispose()
         {
-            _isDisposed = true;
+            _client.GetStream().Close();
             _client.Close();
-            _server.Close();
+            _isDisposed = true;
         }
     }
 }

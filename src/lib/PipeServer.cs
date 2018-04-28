@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,13 +15,9 @@ namespace PlanetaryProcessor
         /// <summary>
         /// The pipe that reads from the other app
         /// </summary>
-        private NamedPipeClientStream _client;
-        
-        /// <summary>
-        /// The pipe thats writes to the other app
-        /// </summary>
-        private NamedPipeServerStream _server;
+        private TcpListener _listener;
 
+        private TcpClient _client;
         /// <summary>
         /// Whether the Pipe was disposed
         /// </summary>
@@ -40,17 +38,19 @@ namespace PlanetaryProcessor
         /// </summary>
         private Object _lock;
         
-        public PipeServer(String name)
+        public PipeServer(Int32 port)
         {
-            _name = name;
-            _server = new NamedPipeServerStream(name, PipeDirection.InOut);
+            _listener = new TcpListener(IPAddress.Loopback, port);
+            _listener.Start();
+            _listener.Server.NoDelay = true;
+            _listener.Server.DontFragment = true;
             _messages = new Dictionary<String, Queue<String>>();
             _lock = new Object();
         }
 
         private async Task CheckForNewMessages()
         {
-            String s = await ReadString();
+            String s = await ReadMessage(_client.Client);
             String[] split = s.Split(new[] {"::"}, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length > 2)
             {
@@ -102,90 +102,88 @@ namespace PlanetaryProcessor
         public async Task SendMessage(String ident, String message)
         {
             String fullMsg = ident + "::" + message;
-            await WriteString(fullMsg);
+            await SendMessage(_client.Client, fullMsg);
         }
-
-        private async Task<String> ReadString()
+        
+        private static async Task SendMessage(Socket socket, String msg)
         {
-            Byte[] sizeinfo = new Byte[4];
-
-            // Read the size of the message
-            Int32 totalread = 0, currentread = 0;
-
-            currentread = totalread = await _client.ReadAsync(sizeinfo, 0, 4);
-
-            while (totalread < sizeinfo.Length && currentread > 0)
+            await Task.Run(() =>
             {
-                currentread = await _client.ReadAsync(sizeinfo,
-                    totalread, //offset into the buffer
-                    sizeinfo.Length - totalread //max amount to read
-                );
+                Byte[] data = Encoding.ASCII.GetBytes(msg);
+                Byte[] sizeinfo = new Byte[4];
 
-                totalread += currentread;
-            }
+                //could optionally call BitConverter.GetBytes(data.length);
+                sizeinfo[0] = (Byte) data.Length;
+                sizeinfo[1] = (Byte) (data.Length >> 8);
+                sizeinfo[2] = (Byte) (data.Length >> 16);
+                sizeinfo[3] = (Byte) (data.Length >> 24);
 
-            Int32 messagesize = 0;
-
-            //could optionally call BitConverter.ToInt32(sizeinfo, 0);
-            messagesize |= sizeinfo[0];
-            messagesize |= sizeinfo[1] << 8;
-            messagesize |= sizeinfo[2] << 16;
-            messagesize |= sizeinfo[3] << 24;
-
-            //create a byte array of the correct size
-            //note:  there really should be a size restriction on
-            //              messagesize because a user could send
-            //              Int32.MaxValue and cause an OutOfMemoryException
-            //              on the receiving side.  maybe consider using a short instead
-            //              or just limit the size to some reasonable value
-            Byte[] data = new Byte[messagesize];
-
-            //read the first chunk of data
-            totalread = 0;
-            currentread = totalread = await _client.ReadAsync(data,
-                totalread, //offset into the buffer
-                data.Length - totalread //max amount to read
-            );
-
-            //if we didn't get the entire message, read some more until we do
-            while (totalread < messagesize && currentread > 0)
-            {
-                currentread = await _client.ReadAsync(data,
-                    totalread, //offset into the buffer
-                    data.Length - totalread //max amount to read
-                );
-                totalread += currentread;
-            }
-
-            return Encoding.ASCII.GetString(data, 0, totalread);
+                socket.Send(sizeinfo);
+                socket.Send(data);
+            });
         }
-
-        private async Task<Int32> WriteString(String outString)
+        
+        private static async Task<String> ReadMessage(Socket socket)
         {
-            Byte[] data = Encoding.ASCII.GetBytes(outString);
-            Byte[] sizeinfo = new Byte[4];
+            return await Task.Run(() =>
+            {
+                Byte[] sizeinfo = new Byte[4];
 
-            //could optionally call BitConverter.GetBytes(data.length);
-            sizeinfo[0] = (Byte)data.Length;
-            sizeinfo[1] = (Byte)(data.Length >> 8);
-            sizeinfo[2] = (Byte)(data.Length >> 16);
-            sizeinfo[3] = (Byte)(data.Length >> 24);
+                //read the size of the message
+                Int32 totalread = 0, currentread = 0;
 
-            await _server.WriteAsync(sizeinfo, 0, 4);
-            await _server.WriteAsync(data, 0, data.Length);
-            _server.Flush();
+                currentread = totalread = socket.Receive(sizeinfo);
 
-            return data.Length + 4;
+                while (totalread < sizeinfo.Length && currentread > 0)
+                {
+                    currentread = socket.Receive(sizeinfo,
+                        totalread, //offset into the buffer
+                        sizeinfo.Length - totalread, //max amount to read
+                        SocketFlags.None);
+
+                    totalread += currentread;
+                }
+
+                Int32 messagesize = 0;
+
+                //could optionally call BitConverter.ToInt32(sizeinfo, 0);
+                messagesize |= sizeinfo[0];
+                messagesize |= (((Int32) sizeinfo[1]) << 8);
+                messagesize |= (((Int32) sizeinfo[2]) << 16);
+                messagesize |= (((Int32) sizeinfo[3]) << 24);
+
+                //create a byte array of the correct size
+                //note:  there really should be a size restriction on
+                //              messagesize because a user could send
+                //              Int32.MaxValue and cause an OutOfMemoryException
+                //              on the receiving side.  maybe consider using a short instead
+                //              or just limit the size to some reasonable value
+                Byte[] data = new Byte[messagesize];
+
+                //read the first chunk of data
+                totalread = 0;
+                currentread = totalread = socket.Receive(data,
+                    totalread, //offset into the buffer
+                    data.Length - totalread, //max amount to read
+                    SocketFlags.None);
+
+                //if we didn't get the entire message, read some more until we do
+                while (totalread < messagesize && currentread > 0)
+                {
+                    currentread = socket.Receive(data,
+                        totalread, //offset into the buffer
+                        data.Length - totalread, //max amount to read
+                        SocketFlags.None);
+                    totalread += currentread;
+                }
+
+                return Encoding.ASCII.GetString(data, 0, totalread);
+            });
         }
 
         public async Task WaitForConnection()
         {
-            await Task.Run(() => { _server.WaitForConnection(); });
-            await Task.Delay(200);
-
-            // Connect to the other direction
-            _client = new NamedPipeClientStream(".", _name + "-RE", PipeDirection.InOut);
-            _client.Connect();
+            _client = await _listener.AcceptTcpClientAsync();
             
             Task.Run(async () =>
             {
@@ -200,8 +198,8 @@ namespace PlanetaryProcessor
         public void Dispose()
         {
             _isDisposed = true;
-            _client.Close();
-            _server.Close();
+            _client.GetStream().Close();
+            _listener.Stop();
         }
     }
 }

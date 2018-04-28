@@ -22,7 +22,7 @@ namespace PlanetaryProcessor.Tester
             config.SetValue("__oceanHeight", "0");
             config.SetValue("__oceanColor", "0,0,0,0");
             config.SetValue("__normalStrength", "7");
-            config.SetValue("mapMaxHeight", "9000");
+            config.SetValue("mapMaxHeight", "19000");
             NodeTree mods = config.AddNode("Mods");
             NodeTree vertexSimplexHeightAbsolute = mods.AddNode("VertexSimplexHeightAbsolute");
             vertexSimplexHeightAbsolute.SetValue("deformity", "8000");

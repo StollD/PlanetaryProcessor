@@ -23,6 +23,7 @@ namespace PlanetaryProcessor
             "Managed/Mono.Security.dll",
             "Managed/mscorlib.dll",
             "Managed/PlanetaryProcessor.Unity.dll",
+            "Managed/System.Configuration.dll",
             "Managed/System.Core.dll",
             "Managed/System.dll",
             "Managed/System.Xml.dll",

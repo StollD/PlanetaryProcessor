@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 
 namespace PlanetaryProcessor
@@ -9,14 +10,14 @@ namespace PlanetaryProcessor
     /// </summary>
     public class NodeTree
     {
-        private Dictionary<String, String> _values;
+        private List<KeyValuePair<String, String>> _values;
 
-        private Dictionary<String, NodeTree> _nodes;
+        private List<KeyValuePair<String, NodeTree>> _nodes;
 
         public NodeTree()
         {
-            _values = new Dictionary<String, String>();
-            _nodes = new Dictionary<String, NodeTree>();
+            _values = new List<KeyValuePair<String, String>>();
+            _nodes = new List<KeyValuePair<String, NodeTree>> ();
         }
 
         /// <summary>
@@ -24,9 +25,9 @@ namespace PlanetaryProcessor
         /// </summary>
         public NodeTree GetNode(String name)
         {
-            if (_nodes.ContainsKey(name))
+            if (_nodes.Any(s => s.Key == name))
             {
-                return _nodes[name];
+                return _nodes.Find(s => s.Key == name).Value;
             }
 
             return null;
@@ -46,11 +47,7 @@ namespace PlanetaryProcessor
         /// </summary>
         public void SetNode(String name, NodeTree node)
         {
-            if (_nodes.ContainsKey(name))
-            {
-                _nodes[name] = node;
-            }
-            _nodes.Add(name, node);
+            _nodes.Add(new KeyValuePair<String, NodeTree>(name, node));
         }
 
         /// <summary>
@@ -58,9 +55,9 @@ namespace PlanetaryProcessor
         /// </summary>
         public String GetValue(String name)
         {
-            if (_values.ContainsKey(name))
+            if (_values.Any(s => s.Key == name))
             {
-                return _values[name];
+                return _values.Find(s => s.Key == name).Value;
             }
 
             return null;
@@ -71,11 +68,7 @@ namespace PlanetaryProcessor
         /// </summary>
         public void SetValue(String name, String value)
         {
-            if (_values.ContainsKey(name))
-            {
-                _values[name] = value;
-            }
-            _values.Add(name, value);
+            _values.Add(new KeyValuePair<String, String>(name, value));
         }
 
         /// <summary>

@@ -39,13 +39,14 @@ namespace PlanetaryProcessor.Unity
             InitKopernicus();
             
             // Create the pipe to the controller
-            String id = Environment.GetEnvironmentVariable("PP_ID");
-            _client = new PipeClient(id);
+            Int32 port = Int32.Parse(Environment.GetEnvironmentVariable("PP_PORT"));
+            _client = new PipeClient(port);
             _client.ReadMessage("GENERATE-MAPS-RAW",
                 channel => _client.ReadMessage(channel, s => GenerateRawPlanetMaps(channel, s)));
             _client.ReadMessage("GENERATE-MAPS-ENCODED",
                 channel => _client.ReadMessage(channel, s => GenerateEncodedPlanetMaps(channel, s)));
             _client.ReadMessage("KEEPALIVE", s => _client.SendMessage("KEEPALIVE", s));
+            _client.ReadMessage("KILL", s => { _client.Dispose(); Application.Quit(); });
         }
 
         /// <summary>
@@ -68,6 +69,9 @@ namespace PlanetaryProcessor.Unity
             {
                 gameDatabaseInstance.SetValue(null, gameObject.AddComponent<GameDatabase>());
             }
+            
+            // Create GameData
+            Directory.CreateDirectory("GameData");
         }
 
         /// <summary>

@@ -75,8 +75,8 @@ namespace PlanetaryProcessor
                 }
 
                 // Prepare the communication between this and the unity application
-                String id = Guid.NewGuid().ToString();
-                processor._server = new PipeServer(id);
+                Int32 port = Utility.GetAvailablePort(5000);
+                processor._server = new PipeServer(port);
 
                 // Start the Process
                 String programName = "";
@@ -110,7 +110,7 @@ namespace PlanetaryProcessor
                     "-nographics -batchmode");
                 startInfo.WorkingDirectory = programDirectory;
                 startInfo.EnvironmentVariables.Add("LC_ALL", "C");
-                startInfo.EnvironmentVariables.Add("PP_ID", id);
+                startInfo.EnvironmentVariables.Add("PP_PORT", port.ToString());
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardOutput = true;
                 processor._process = Process.Start(startInfo);
@@ -123,7 +123,7 @@ namespace PlanetaryProcessor
                 {
                     while (!processor._isDisposed)
                     {
-                        await processor._server.SendMessage("KEEPALIVE", id);
+                        await processor._server.SendMessage("KEEPALIVE", port.ToString());
                         await Task.Delay(5000);
                     }
                 });
@@ -258,11 +258,11 @@ namespace PlanetaryProcessor
         /// <summary>
         /// Dispose the processor
         /// </summary>
-        public void Dispose()
+        public async void Dispose()
         {
-            _isDisposed = true;
-            _process.Kill();
+            await _server.SendMessage("KILL", "KILL");
             _server.Dispose();
+            _isDisposed = true;
         }
         
         /// <summary>
