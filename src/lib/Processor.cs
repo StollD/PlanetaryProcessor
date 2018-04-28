@@ -292,9 +292,13 @@ namespace PlanetaryProcessor
         {
             String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "PlanetaryProcessor", Version, "GameData");
+            if (!appPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                appPath += Path.DirectorySeparatorChar;
+            }
             Uri appUri = new Uri(appPath);
             Uri targetUri = new Uri(Path.GetFullPath(path));
-            return Path.Combine(appPath, appUri.MakeRelativeUri(targetUri).ToString());
+            return Uri.UnescapeDataString(appUri.MakeRelativeUri(targetUri).ToString());
         }
     }
 }
