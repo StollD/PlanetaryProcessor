@@ -291,7 +291,20 @@ namespace PlanetaryProcessor
         public static String TransformPath(String path)
         {
             String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "PlanetaryProcessor", Version, "GameData");
+                "PlanetaryProcessor", Version);
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                if (IntPtr.Size == 8)
+                {
+                    appPath = Path.Combine(appPath, "x64");
+                }
+                else
+                {
+                    appPath = Path.Combine(appPath, "x86");
+                }
+            }
+
+            appPath = Path.Combine(appPath, "GameData");
             if (!appPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
                 appPath += Path.DirectorySeparatorChar;
