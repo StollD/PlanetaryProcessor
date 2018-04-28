@@ -65,7 +65,7 @@ namespace PlanetaryProcessor
 
                 // Assemble the Unity Application from the KSP installation
                 String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    ".planetaryprocessor", Version);
+                    "PlanetaryProcessor", Version);
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
@@ -291,7 +291,7 @@ namespace PlanetaryProcessor
         public static String TransformPath(String path)
         {
             String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ".planetaryprocessor", Version, "GameData");
+                "PlanetaryProcessor", Version, "GameData");
             String[] lStartPathParts = appPath.Trim(Path.DirectorySeparatorChar)
                 .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
             String[] lDestinationPathParts = Path.GetFullPath(path)
