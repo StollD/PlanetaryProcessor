@@ -12,7 +12,7 @@ namespace PlanetaryProcessor
         /// <summary>
         /// The version of the processor
         /// </summary>
-        public const String Version = "1.4.3-1";
+        public const String Version = "1.4.3-2";
 
         /// <summary>
         /// The Kopernicus version that was bundled with the processor
@@ -292,38 +292,9 @@ namespace PlanetaryProcessor
         {
             String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "PlanetaryProcessor", Version, "GameData");
-            String[] lStartPathParts = appPath.Trim(Path.DirectorySeparatorChar)
-                .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
-            String[] lDestinationPathParts = Path.GetFullPath(path)
-                .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
-
-            Int32 lSameCounter = 0;
-            while (lSameCounter < lStartPathParts.Length && lSameCounter < lDestinationPathParts.Length &&
-                   lStartPathParts[lSameCounter].Equals(lDestinationPathParts[lSameCounter],
-                       Environment.OSVersion.Platform == PlatformID.Win32NT
-                           ? StringComparison.InvariantCultureIgnoreCase
-                           : StringComparison.InvariantCulture))
-            {
-                lSameCounter++;
-            }
-
-            if (lSameCounter == 0)
-            {
-                return null; // There is no relative link.
-            }
-
-            StringBuilder lBuilder = new StringBuilder();
-            for (Int32 i = lSameCounter; i < lStartPathParts.Length; i++)
-            {
-                lBuilder.Append(".." + Path.DirectorySeparatorChar);
-            }
-            for (Int32 i = lSameCounter; i < lDestinationPathParts.Length; i++)
-            {
-                lBuilder.Append(lDestinationPathParts[i] + Path.DirectorySeparatorChar);
-            }
-            lBuilder.Length--;
-
-            return lBuilder.ToString();
+            Uri appUri = new Uri(appPath);
+            Uri targetUri = new Uri(Path.GetFullPath(path));
+            return Path.Combine(appPath, appUri.MakeRelativeUri(targetUri).ToString());
         }
     }
 }

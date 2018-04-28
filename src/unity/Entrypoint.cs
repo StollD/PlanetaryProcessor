@@ -155,6 +155,41 @@ namespace PlanetaryProcessor.Unity
                     new GradientColorKey(new Color(0.400f, 0.400f, 0.400f, 1.000f), 0.7911803f)
                 },
                 new[] {new GradientAlphaKey(1, 0), new GradientAlphaKey(1, 1)});
+            craters.colorOpacity = 0.7f;
+            craters.DebugColorMapping = false;
+            craters.deformation = 500f;
+            craters.jitter = 0.1f;
+            craters.jitterHeight = 3f;
+            craters.rFactor = 1f;
+            craters.rOffset = 1f;
+            craters.simplexFrequency = 120f;
+            craters.simplexOctaves = 3f;
+            craters.simplexPersistence = 0.5f;
+            craters.simplexSeed = 123123;
+            craters.voronoiDisplacement = 0f;
+            craters.voronoiFrequency = 22f;
+            craters.voronoiSeed = 824;
+            craters.order = 101;
+            enabled = true;
+            craters.name = "_HeightNoise";
+            craters.craterCurve = new AnimationCurve(
+                new Keyframe(-0.9982381f, -0.7411783f, -0.06500059f, -0.06500059f),
+                new Keyframe(-0.9332262f, -0.7678316f, -0.2176399f, -0.2176399f),
+                new Keyframe(-0.8990405f, -0.7433339f, -2.560626f, -2.560626f),
+                new Keyframe(-0.7445966f, -0.8581167f, 0.4436148f, 0.4436148f),
+                new Keyframe(-0.4499771f, -0.1392395f, 5.289535f, 5.289535f),
+                new Keyframe(-0.4015177f, 0.2551735f, 9.069458f, -2.149609f),
+                new Keyframe(-0.2297457f, 0.002857953f, -0.4453675f, -0.4453675f),
+                new Keyframe(0.2724952f, 0.00423781f, -0.01884932f, -0.01884932f),
+                new Keyframe(0.9998434f, -0.004090764f, 0.01397126f, 0.01397126f));
+            craters.jitterCurve = new AnimationCurve(
+                new Keyframe(-1.000701f, 0.4278412f, 0.1577609f, 0.1577609f),
+                new Keyframe(-0.7884969f, 0.09487452f, -0.7739663f, -0.7739663f),
+                new Keyframe(-0.6091803f, 0.072019f, 0.123537f, 0.123537f),
+                new Keyframe(-0.3930514f, 0.3903495f, 3.300831f, 3.300831f),
+                new Keyframe(-0.3584836f, 0.8643304f, 0.07139917f, 0.07139917f),
+                new Keyframe(-0.2988068f, 0.002564805f, -0.01814346f, -0.01814346f),
+                new Keyframe(0.9970253f, 0.003401639f, 0f, 0f));
             craters.craterColourRamp.mode = GradientMode.Blend;
             craters.transform.parent = mun.pqsVersion.transform;
             root.children.Add(mun);
@@ -268,6 +303,7 @@ namespace PlanetaryProcessor.Unity
             catch (Exception e)
             {
                 _client.SendMessage(channel + "-ERR", e.Message);
+                throw e;
             }
         }
         
@@ -321,6 +357,7 @@ namespace PlanetaryProcessor.Unity
             catch (Exception e)
             {
                 _client.SendMessage(channel + "-ERR", e.Message);
+                throw e;
             }
         }
 
