@@ -59,7 +59,7 @@ namespace PlanetaryProcessor.Tester
             vertexHeightOblate.SetValue("enabled", "True");
             vertexHeightOblate.SetValue("order", "1");
             
-            using (Processor processor = await Processor.Create("/home/dorian/Dokumente/KSP/1.4.2/Kerbal Space Program/"))
+            using (Processor processor = await Processor.Create("/home/dorian/Dokumente/KSP/1.4.3/Kerbal Space Program/"))
             {
                 Processor.EncodedTextureData data = await processor.GenerateMapsEncoded(config);
                 

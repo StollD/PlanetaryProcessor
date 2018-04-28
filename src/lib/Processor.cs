@@ -12,12 +12,12 @@ namespace PlanetaryProcessor
         /// <summary>
         /// The version of the processor
         /// </summary>
-        public const String Version = "1.4.2-1";
+        public const String Version = "1.4.3-1";
 
         /// <summary>
         /// The Kopernicus version that was bundled with the processor
         /// </summary>
-        public const String KopernicusVersion = "1.4.2-1";
+        public const String KopernicusVersion = "1.4.3-1";
 
         /// <summary>
         /// The proces
@@ -64,7 +64,7 @@ namespace PlanetaryProcessor
                 }
 
                 // Assemble the Unity Application from the KSP installation
-                String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     ".planetaryprocessor", Version);
                 if (!Directory.Exists(path))
                 {
@@ -290,7 +290,7 @@ namespace PlanetaryProcessor
         /// </summary>
         public static String TransformPath(String path)
         {
-            String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+            String appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 ".planetaryprocessor", Version, "GameData");
             String[] lStartPathParts = appPath.Trim(Path.DirectorySeparatorChar)
                 .Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
